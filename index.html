@@ -63,6 +63,7 @@
         .m3 { top: 40%; left: 30%; width: 30vw; opacity: 0.02; filter: grayscale(100%) blur(10px); }
         .m4 { top: 20%; right: 10%; width: 25vw; transform: rotate(25deg); }
         .m5 { bottom: -5%; left: 15%; width: 35vw; transform: rotate(-5deg); }
+        .m6 { top: 60%; right: 25%; width: 28vw; transform: rotate(-12deg); opacity: 0.03; }
 
         /* --- NAVIGATION --- */
         nav {
@@ -128,7 +129,7 @@
             font-weight: 200;
             letter-spacing: 0.3em;
             margin-bottom: 1rem;
-            text-indent: 0.3em; /* offsets tracking for centering */
+            text-indent: 0.3em;
         }
 
         .hero-subtitle {
@@ -147,14 +148,16 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 3rem;
+            padding: 0 1rem;
         }
 
         .hero-img {
             max-width: 100%;
             max-height: 100%;
+            width: auto;
+            height: auto;
             object-fit: contain;
             filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8));
-            /* Initial state for load animation */
             opacity: 0;
             transform: scale(0.85) translateY(20px);
             animation: heroImageReveal 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
@@ -167,11 +170,119 @@
             color: var(--gold);
         }
 
+        /* --- ABOUT & STAFF SECTION --- */
+        .about-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .scroll-track {
+            /* Gives plenty of height for the user to scroll through while the text writes itself */
+            height: 400vh;
+            position: relative;
+        }
+
+        .sticky-content {
+            position: sticky;
+            top: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(var(--nav-height) + 2rem) 5% 4rem 5%;
+            overflow: visible; /* Guarantees text will never clip */
+        }
+
+        .text-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .scroll-text {
+            /* Huge but fully responsive typography */
+            font-size: clamp(1.6rem, 4.5vw, 4rem);
+            line-height: 1.4;
+            font-weight: 300;
+            text-align: center;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .word {
+            display: inline-block;
+            will-change: transform, opacity;
+        }
+
+        .staff-section {
+            padding: 6rem 5% 10rem;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .staff-title {
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+            color: var(--text-muted);
+            margin-bottom: 4rem;
+        }
+
+        .staff-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .staff-card {
+            background: linear-gradient(145deg, rgba(25, 25, 25, 0.6) 0%, rgba(10, 10, 10, 0.8) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 3.5rem 2rem;
+            flex: 1 1 300px;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+        }
+
+        .staff-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 20px rgba(255,255,255,0.03);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .staff-card h4 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+            color: var(--gold);
+        }
+
+        .staff-card p.role {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            font-weight: 300;
+        }
+
+        .staff-card p.muted-subtext {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 1.5rem;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
         /* --- BLUB COLLECTION SECTION --- */
         .collection {
             padding: 8rem 5%;
             max-width: 1600px;
             margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            background: var(--bg-color); /* Prevents scroll overlap visuals */
         }
 
         .section-title {
@@ -200,6 +311,9 @@
                         background 0.5s ease;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .card::before {
@@ -229,17 +343,21 @@
         }
 
         .card-img-wrapper {
-            height: 250px;
+            height: 240px;
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
+            padding: 0.5rem;
         }
 
         .card img {
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain;
+            width: auto;
+            height: auto;
+            object-fit: contain; 
             filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
             transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
@@ -252,7 +370,7 @@
             font-size: 1.2rem;
             font-weight: 600;
             letter-spacing: 0.15em;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .card p {
@@ -298,11 +416,14 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 5rem;
+            padding: 0 1rem;
         }
 
         .king-img {
             max-width: 100%;
             max-height: 100%;
+            width: auto;
+            height: auto;
             object-fit: contain;
             filter: drop-shadow(0 30px 60px rgba(0,0,0,0.9)) drop-shadow(0 0 40px rgba(212, 175, 55, 0.1));
             transition: transform 0.8s ease;
@@ -324,6 +445,8 @@
             text-align: center;
             border-top: 1px solid var(--glass-border);
             background: rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
         }
 
         footer h2 {
@@ -372,7 +495,9 @@
             .nav-links { display: none; }
             .hero-img-container { height: 35vh; }
             .king-img-container { height: 40vh; }
+            .card-img-wrapper { height: 200px; }
             .card { padding: 2rem 1.5rem; }
+            .staff-card { padding: 2.5rem 1.5rem; }
         }
 
         /* Accessibility: Respect prefers-reduced-motion */
@@ -383,8 +508,10 @@
                 transition-duration: 0.01ms !important;
                 scroll-behavior: auto !important;
             }
-            .hero-img { opacity: 1; transform: none; }
-            .fade-in { opacity: 1; transform: none; }
+            .hero-img, .fade-in { opacity: 1; transform: none; }
+            .scroll-track { height: auto !important; padding: 10vh 0; }
+            .sticky-content { position: relative !important; height: auto !important; min-height: auto; }
+            .word { opacity: 1 !important; transform: none !important; }
         }
     </style>
 </head>
@@ -392,11 +519,12 @@
 
     <!-- MURAL BACKGROUND -->
     <div id="mural">
-        <img src="images/Gemini_Generated_Image_fjjc9yfjjc9yfjjc.jpeg" class="mural-img m1" alt="">
+        <img src="images/Gemini_Generated_Image_fjjc9yfjjc9yfjjc.jpg" class="mural-img m1" alt="">
         <img src="images/Blub.png" class="mural-img m2" alt="">
-        <img src="images/Gemini_Generated_Image_ppp6x0ppp6x0ppp6.jpeg" class="mural-img m3" alt="">
-        <img src="images/Gemini_Generated_Image_3ry3w73ry3w73ry3.jpeg" class="mural-img m4" alt="">
-        <img src="images/Gemini_Generated_Image_upqumcupqumcupqu.jpeg" class="mural-img m5" alt="">
+        <img src="images/Gemini_Generated_Image_ppp6x0ppp6x0ppp6.jpg" class="mural-img m3" alt="">
+        <img src="images/Gemini_Generated_Image_3ry3w73ry3w73ry3.jpg" class="mural-img m4" alt="">
+        <img src="images/Gemini_Generated_Image_upqumcupqumcupqu.jpg" class="mural-img m5" alt="">
+        <img src="images/volcano-blub.png" class="mural-img m6" alt="">
     </div>
 
     <!-- NAVIGATION -->
@@ -404,6 +532,7 @@
         <a href="#home" class="nav-logo">BLUB CLUB</a>
         <div class="nav-links">
             <a href="#home">HOME</a>
+            <a href="#about">ABOUT</a>
             <a href="#blubs">BLUBS</a>
             <a href="#the-king">THE KING</a>
         </div>
@@ -415,11 +544,42 @@
         <p class="hero-subtitle fade-in" style="transition-delay: 0.1s;">THE HOME OF THE BLUBS</p>
         
         <div class="hero-img-container">
-            <img src="images/Gemini_Generated_Image_fjjc9yfjjc9yfjjc.jpeg" alt="King Cheesecake Blub" class="hero-img">
+            <img src="images/Gemini_Generated_Image_fjjc9yfjjc9yfjjc.jpg" alt="King Cheesecake Blub" class="hero-img">
         </div>
         
         <p class="hero-label fade-in" style="transition-delay: 0.8s;">KING CHEESECAKE BLUB</p>
     </header>
+
+    <!-- ABOUT & STAFF SECTION -->
+    <section id="about" class="about-wrapper">
+        <!-- Cinematic Scroll-Written Text Reveal -->
+        <div class="scroll-track">
+            <div class="sticky-content">
+                <div class="text-container">
+                    <h2 id="animated-text" class="scroll-text">
+                        <!-- Content dynamically injected to preserve screen reader access and spacing -->
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Staff Section -->
+        <div class="staff-section">
+            <h3 class="staff-title fade-in">THE BLUB CLUB STAFF</h3>
+            
+            <div class="staff-grid">
+                <div class="staff-card fade-in">
+                    <h4>Pravith</h4>
+                    <p class="role">Manager</p>
+                </div>
+
+                <div class="staff-card fade-in" style="transition-delay: 0.1s;">
+                    <h4>More to come</h4>
+                    <p class="muted-subtext">(Additional BLUB CLUB staff members will be added in the future.)</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- BLUB COLLECTION -->
     <section id="blubs" class="collection">
@@ -431,56 +591,110 @@
                 <div class="card-img-wrapper">
                     <img src="images/Blub.png" alt="OG Blub" loading="lazy">
                 </div>
-                <h3>OG BLUB</h3>
-                <p>The original Blub.</p>
+                <div>
+                    <h3>OG BLUB</h3>
+                    <p>The original Blub.</p>
+                </div>
             </div>
 
             <div class="card fade-in" style="transition-delay: 0.1s;">
                 <div class="card-img-wrapper">
-                    <img src="images/Gemini_Generated_Image_upqumcupqumcupqu.jpeg" alt="Pancake Blub" loading="lazy">
+                    <img src="images/Gemini_Generated_Image_upqumcupqumcupqu.jpg" alt="Pancake Blub" loading="lazy">
                 </div>
-                <h3>PANCAKE BLUB</h3>
-                <p>Breakfast has entered the Blub universe.</p>
+                <div>
+                    <h3>PANCAKE BLUB</h3>
+                    <p>Breakfast has entered the Blub universe.</p>
+                </div>
             </div>
 
             <div class="card fade-in" style="transition-delay: 0.2s;">
                 <div class="card-img-wrapper">
-                    <img src="images/Gemini_Generated_Image_3ry3w73ry3w73ry3.jpeg" alt="Pizza Blub" loading="lazy">
+                    <img src="images/Gemini_Generated_Image_3ry3w73ry3w73ry3.jpg" alt="Pizza Blub" loading="lazy">
                 </div>
-                <h3>PIZZA BLUB</h3>
-                <p>Pizza-powered Blub.</p>
+                <div>
+                    <h3>PIZZA BLUB</h3>
+                    <p>Pizza-powered Blub.</p>
+                </div>
             </div>
 
             <div class="card fade-in">
                 <div class="card-img-wrapper">
-                    <img src="images/Gemini_Generated_Image_dwmzi8dwmzi8dwmz.jpeg" alt="Strawberry Blub" loading="lazy">
+                    <img src="images/Gemini_Generated_Image_dwmzi8dwmzi8dwmz.jpg" alt="Strawberry Blub" loading="lazy">
                 </div>
-                <h3>STRAWBERRY BLUB</h3>
-                <p>A strawberry-themed Blub.</p>
+                <div>
+                    <h3>STRAWBERRY BLUB</h3>
+                    <p>A strawberry-themed Blub.</p>
+                </div>
             </div>
 
             <div class="card fade-in" style="transition-delay: 0.1s;">
                 <div class="card-img-wrapper">
-                    <img src="images/Gemini_Generated_Image_s8dh79s8dh79s8dh.jpeg" alt="Watermelon Blub" loading="lazy">
+                    <img src="images/Gemini_Generated_Image_s8dh79s8dh79s8dh.jpg" alt="Watermelon Blub" loading="lazy">
                 </div>
-                <h3>WATERMELON BLUB</h3>
-                <p>Fresh watermelon energy.</p>
+                <div>
+                    <h3>WATERMELON BLUB</h3>
+                    <p>Fresh watermelon energy.</p>
+                </div>
             </div>
 
             <div class="card fade-in" style="transition-delay: 0.2s;">
                 <div class="card-img-wrapper">
-                    <img src="images/Gemini_Generated_Image_cs84a7cs84a7cs84.jpeg" alt="Cookie Blub" loading="lazy">
+                    <img src="images/Gemini_Generated_Image_cs84a7cs84a7cs84.jpg" alt="Cookie Blub" loading="lazy">
                 </div>
-                <h3>COOKIE BLUB</h3>
-                <p>A cookie-themed Blub.</p>
+                <div>
+                    <h3>COOKIE BLUB</h3>
+                    <p>A cookie-themed Blub.</p>
+                </div>
             </div>
 
             <div class="card fade-in">
                 <div class="card-img-wrapper">
-                    <img src="images/Gemini_Generated_Image_ppp6x0ppp6x0ppp6.jpeg" alt="Donut Blub" loading="lazy">
+                    <img src="images/Gemini_Generated_Image_ppp6x0ppp6x0ppp6.jpg" alt="Donut Blub" loading="lazy">
                 </div>
-                <h3>DONUT BLUB</h3>
-                <p>A donut-themed Blub.</p>
+                <div>
+                    <h3>DONUT BLUB</h3>
+                    <p>A donut-themed Blub.</p>
+                </div>
+            </div>
+
+            <div class="card fade-in" style="transition-delay: 0.1s;">
+                <div class="card-img-wrapper">
+                    <img src="images/ice-cream-blub.png" alt="Ice Cream Blub" loading="lazy">
+                </div>
+                <div>
+                    <h3>ICE CREAM BLUB</h3>
+                    <p>Chilled to perfection with extra sprinkles.</p>
+                </div>
+            </div>
+
+            <div class="card fade-in" style="transition-delay: 0.2s;">
+                <div class="card-img-wrapper">
+                    <img src="images/volcano-blub.png" alt="Volcano Blub" loading="lazy">
+                </div>
+                <div>
+                    <h3>VOLCANO BLUB</h3>
+                    <p>Erupting with pure Blub energy.</p>
+                </div>
+            </div>
+
+            <div class="card fade-in">
+                <div class="card-img-wrapper">
+                    <img src="images/burger-blub.png" alt="Burger Blub" loading="lazy">
+                </div>
+                <div>
+                    <h3>BURGER BLUB</h3>
+                    <p>A multi-layered savory masterpiece.</p>
+                </div>
+            </div>
+
+            <div class="card fade-in" style="transition-delay: 0.1s;">
+                <div class="card-img-wrapper">
+                    <img src="images/taco-blub.png" alt="Taco Blub" loading="lazy">
+                </div>
+                <div>
+                    <h3>TACO BLUB</h3>
+                    <p>Seasoned, folded, and unconditionally iconic.</p>
+                </div>
             </div>
 
         </div>
@@ -492,7 +706,7 @@
         <h2 class="king-name fade-in" style="transition-delay: 0.1s;">KING CHEESECAKE BLUB</h2>
         
         <div class="king-img-container fade-in" style="transition-delay: 0.2s;">
-            <img src="images/Gemini_Generated_Image_fjjc9yfjjc9yfjjc.jpeg" alt="King Cheesecake Blub" class="king-img" loading="lazy">
+            <img src="images/Gemini_Generated_Image_fjjc9yfjjc9yfjjc.jpg" alt="King Cheesecake Blub" class="king-img" loading="lazy">
         </div>
         
         <h1 class="king-statement fade-in" style="transition-delay: 0.3s;">CHEESECAKE.<br>KING.<br>BLUB.</h1>
@@ -507,7 +721,7 @@
 
     <!-- SCRIPTS -->
     <script>
-        // Smooth Nav Background Transition
+        // --- NAV LOGIC ---
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) {
@@ -517,35 +731,99 @@
             }
         });
 
-        // Subtle Parallax for Mural Background
+        // --- MURAL PARALLAX ---
         const mural = document.getElementById('mural');
         window.addEventListener('scroll', () => {
-            // Apply a gentle translation based on scroll position
             const scrollPos = window.scrollY;
-            mural.style.transform = `translateY(${scrollPos * 0.15}px)`;
+            mural.style.transform = `translateY(${scrollPos * 0.12}px)`;
         });
 
-        // Intersection Observer for scroll reveal animations
+        // --- INTERSECTION OBSERVER FOR FADE-INS ---
         const revealElements = document.querySelectorAll('.fade-in');
-        
-        const revealOptions = {
-            threshold: 0.15,
-            rootMargin: "0px 0px -50px 0px"
-        };
-
         const revealObserver = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
-                
                 entry.target.classList.add('visible');
-                // Stop observing once revealed to keep it visible
                 observer.unobserve(entry.target);
             });
-        }, revealOptions);
-
-        revealElements.forEach(el => {
-            revealObserver.observe(el);
+        }, {
+            threshold: 0.1,
+            rootMargin: "0px 0px -40px 0px"
         });
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // --- CINEMATIC SCROLL REVEAL (ABOUT SECTION) ---
+        const scrollTextEl = document.getElementById('animated-text');
+        const exactText = "Welcome to BLUB CLUB. A place where Blubs come together, themes get ridiculous, and there is always another Blub waiting around the corner. From the original Blub to the King, every Blub has a story. This is BLUB CLUB.";
+        
+        // 1. Setup element for screen readers and split into visual words
+        scrollTextEl.setAttribute('aria-label', exactText);
+        const wordsArray = exactText.split(' ');
+        const wordElements = [];
+
+        wordsArray.forEach(word => {
+            // Span for the actual word animation
+            const span = document.createElement('span');
+            span.className = 'word';
+            span.textContent = word;
+            span.setAttribute('aria-hidden', 'true');
+            
+            scrollTextEl.appendChild(span);
+            
+            // Append an actual text-node space to ensure completely native text-wrapping
+            scrollTextEl.appendChild(document.createTextNode(' '));
+            wordElements.push(span);
+        });
+
+        // 2. Setup Scroll Animation Engine (Ignore if user prefers reduced motion)
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        if (!prefersReducedMotion) {
+            const scrollTrack = document.querySelector('.scroll-track');
+            
+            // Set initial state via script instead of CSS to prevent flash-of-invisible-text
+            wordElements.forEach(word => {
+                word.style.opacity = '0';
+                word.style.transform = 'translateY(-40px)';
+            });
+
+            const updateTextScroll = () => {
+                const rect = scrollTrack.getBoundingClientRect();
+                
+                // Track start is when the top of the track hits the top of the viewport
+                const trackTop = rect.top; 
+                // The total "scrollable" height while sticky
+                const totalScrollDistance = rect.height - window.innerHeight; 
+                
+                // Calculate raw progress (0.0 to 1.0)
+                let progress = -trackTop / totalScrollDistance;
+                progress = Math.max(0, Math.min(1, progress));
+
+                const totalWords = wordElements.length;
+
+                wordElements.forEach((word, index) => {
+                    // Stagger word starting points. Complete the animation roughly 60% through the sticky scroll
+                    // so the user has plenty of static reading time before the section scrolls away.
+                    const animationStart = (index / totalWords) * 0.45; 
+                    const animationEnd = animationStart + 0.15; 
+                    
+                    let p = (progress - animationStart) / (animationEnd - animationStart);
+                    p = Math.max(0, Math.min(1, p));
+                    
+                    // Word drops smoothly into place from above and fades in
+                    const yOffset = -40 * (1 - p); 
+                    
+                    word.style.transform = `translateY(${yOffset}px)`;
+                    word.style.opacity = p;
+                });
+            };
+
+            // Bind to passive scroll listener for high performance
+            window.addEventListener('scroll', updateTextScroll, { passive: true });
+            
+            // Execute once immediately to catch users reloading halfway down the page
+            updateTextScroll();
+        }
     </script>
 </body>
 </html>
