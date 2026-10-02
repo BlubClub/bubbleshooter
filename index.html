@@ -47,23 +47,23 @@
             z-index: -1;
             pointer-events: none;
             overflow: hidden;
-            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+            background: radial-gradient(circle at center, #181818 0%, #000000 100%);
         }
 
         .mural-img {
             position: absolute;
-            opacity: 0.04;
-            filter: grayscale(100%) blur(6px);
+            opacity: 0.25;
+            filter: grayscale(0%) blur(2px);
             object-fit: contain;
             mix-blend-mode: screen;
         }
 
-        .m1 { top: -5%; left: -5%; width: 40vw; transform: rotate(-15deg); }
-        .m2 { bottom: 10%; right: -10%; width: 45vw; transform: rotate(10deg); }
-        .m3 { top: 40%; left: 30%; width: 30vw; opacity: 0.02; filter: grayscale(100%) blur(10px); }
-        .m4 { top: 20%; right: 10%; width: 25vw; transform: rotate(25deg); }
-        .m5 { bottom: -5%; left: 15%; width: 35vw; transform: rotate(-5deg); }
-        .m6 { top: 60%; right: 25%; width: 28vw; transform: rotate(-12deg); opacity: 0.03; }
+        .m1 { top: -5%; left: -5%; width: 40vw; transform: rotate(-15deg); opacity: 0.30; }
+        .m2 { bottom: 10%; right: -10%; width: 45vw; transform: rotate(10deg); opacity: 0.30; }
+        .m3 { top: 40%; left: 30%; width: 30vw; opacity: 0.20; filter: blur(2px); }
+        .m4 { top: 20%; right: 10%; width: 25vw; transform: rotate(25deg); opacity: 0.28; }
+        .m5 { bottom: -5%; left: 15%; width: 35vw; transform: rotate(-5deg); opacity: 0.30; }
+        .m6 { top: 60%; right: 25%; width: 28vw; transform: rotate(-12deg); opacity: 0.22; }
 
         /* --- NAVIGATION --- */
         nav {
