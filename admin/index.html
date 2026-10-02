@@ -1,1 +1,541 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLUB CLUB ADMIN</title>
+
+```
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #080808;
+        color: white;
+        font-family: Arial, sans-serif;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: auto;
+        padding: 40px 20px;
+    }
+
+    h1 {
+        font-size: 42px;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        color: #999;
+        margin-bottom: 40px;
+    }
+
+    .login-box {
+        max-width: 400px;
+        margin: 100px auto;
+    }
+
+    input {
+        width: 100%;
+        padding: 14px;
+        margin: 8px 0;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #111;
+        color: white;
+        font-size: 16px;
+    }
+
+    button {
+        border: none;
+        border-radius: 8px;
+        padding: 12px 18px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .login-button {
+        width: 100%;
+        margin-top: 10px;
+        background: white;
+        color: black;
+    }
+
+    .logout {
+        background: #222;
+        color: white;
+        float: right;
+    }
+
+    .visitor {
+        background: #111;
+        border: 1px solid #252525;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 12px 0;
+    }
+
+    .visitor-id {
+        font-family: monospace;
+        color: #aaa;
+        word-break: break-all;
+        margin: 10px 0;
+    }
+
+    .date {
+        color: #666;
+        font-size: 13px;
+    }
+
+    .ban {
+        background: #d11;
+        color: white;
+    }
+
+    .unban {
+        background: #168a45;
+        color: white;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .active {
+        background: #123d25;
+        color: #55e58a;
+    }
+
+    .banned {
+        background: #451414;
+        color: #ff6666;
+    }
+
+    .error {
+        color: #ff6666;
+        margin-top: 15px;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<!-- LOGIN SCREEN -->
+
+<div id="loginScreen" class="login-box">
+
+    <h1>🫧 BLUB ADMIN</h1>
+
+    <p class="subtitle">
+        BLUB CLUB security control
+    </p>
+
+    <input
+        id="email"
+        type="email"
+        placeholder="Admin email"
+    >
+
+    <input
+        id="password"
+        type="password"
+        placeholder="Admin password"
+    >
+
+    <button
+        class="login-button"
+        onclick="login()"
+    >
+        LOGIN
+    </button>
+
+    <div
+        id="loginError"
+        class="error"
+    ></div>
+
+</div>
+
+
+<!-- ADMIN SCREEN -->
+
+<div
+    id="adminScreen"
+    class="container hidden"
+>
+
+    <button
+        class="logout"
+        onclick="logout()"
+    >
+        LOG OUT
+    </button>
+
+    <h1>🫧 BLUB ADMIN</h1>
+
+    <p class="subtitle">
+        Visitor control panel
+    </p>
+
+    <div id="visitorList">
+        Loading visitors...
+    </div>
+
+</div>
+
+
+<!-- SUPABASE -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+    const SUPABASE_URL =
+        "https://mkygrpgdsncnenyywtyy.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_bI-GRwcfRztZYDeZiBBRNA_3Gmtzwbb";
+
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
+
+
+    // LOGIN
+
+    async function login() {
+
+        const email =
+            document.getElementById("email").value;
+
+        const password =
+            document.getElementById("password").value;
+
+        const errorBox =
+            document.getElementById("loginError");
+
+        errorBox.textContent = "";
+
+
+        const {
+            data,
+            error
+        } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        });
+
+
+        if (error) {
+
+            errorBox.textContent =
+                "Login failed: " + error.message;
+
+            return;
+        }
+
+
+        // Check whether this account is actually
+        // registered as a BLUB CLUB admin.
+
+        const {
+            data: admin,
+            error: adminError
+        } = await supabaseClient
+            .from("admins")
+            .select("id")
+            .eq("id", data.user.id)
+            .maybeSingle();
+
+
+        if (adminError || !admin) {
+
+            await supabaseClient.auth.signOut();
+
+            errorBox.textContent =
+                "This account is not a BLUB CLUB admin.";
+
+            return;
+        }
+
+
+        showAdminPanel();
+    }
+
+
+    // SHOW ADMIN PANEL
+
+    async function showAdminPanel() {
+
+        document
+            .getElementById("loginScreen")
+            .classList
+            .add("hidden");
+
+        document
+            .getElementById("adminScreen")
+            .classList
+            .remove("hidden");
+
+        await loadVisitors();
+    }
+
+
+    // LOAD VISITORS
+
+    async function loadVisitors() {
+
+        const list =
+            document.getElementById("visitorList");
+
+        list.innerHTML =
+            "Loading visitors...";
+
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("visitors")
+            .select(
+                "id, display_name, created_at, banned"
+            )
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
+
+
+        if (error) {
+
+            list.innerHTML = `
+                <div class="error">
+                    Could not load visitors:<br>
+                    ${error.message}
+                </div>
+            `;
+
+            return;
+        }
+
+
+        if (!data || data.length === 0) {
+
+            list.innerHTML =
+                "<p>No BLUB visitors yet.</p>";
+
+            return;
+        }
+
+
+        list.innerHTML = "";
+
+
+        data.forEach(visitor => {
+
+            const div =
+                document.createElement("div");
+
+            div.className = "visitor";
+
+
+            const status =
+                visitor.banned
+
+                ? `
+                    <span class="status banned">
+                        🚫 BANNED
+                    </span>
+                `
+
+                : `
+                    <span class="status active">
+                        🟢 ACTIVE
+                    </span>
+                `;
+
+
+            const button =
+                visitor.banned
+
+                ? `
+                    <button
+                        class="unban"
+                        onclick="setBan('${visitor.id}', false)"
+                    >
+                        UNBAN
+                    </button>
+                `
+
+                : `
+                    <button
+                        class="ban"
+                        onclick="setBan('${visitor.id}', true)"
+                    >
+                        BAN
+                    </button>
+                `;
+
+
+            div.innerHTML = `
+
+                ${status}
+
+                <div class="visitor-id">
+                    ${visitor.id}
+                </div>
+
+                <div class="date">
+                    Joined:
+                    ${new Date(
+                        visitor.created_at
+                    ).toLocaleString()}
+                </div>
+
+                <br>
+
+                ${button}
+
+            `;
+
+
+            list.appendChild(div);
+
+        });
+
+    }
+
+
+    // BAN / UNBAN
+
+    async function setBan(
+        visitorId,
+        banned
+    ) {
+
+        const action =
+            banned ? "BAN" : "UNBAN";
+
+
+        const confirmed =
+            confirm(
+                `Are you sure you want to ${action} this visitor?`
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const {
+            error
+        } = await supabaseClient
+            .from("visitors")
+            .update({
+                banned
+            })
+            .eq(
+                "id",
+                visitorId
+            );
+
+
+        if (error) {
+
+            alert(
+                "Could not change ban status:\n" +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadVisitors();
+    }
+
+
+    // LOG OUT
+
+    async function logout() {
+
+        await supabaseClient.auth.signOut();
+
+        document
+            .getElementById("adminScreen")
+            .classList
+            .add("hidden");
+
+        document
+            .getElementById("loginScreen")
+            .classList
+            .remove("hidden");
+    }
+
+
+    // CHECK EXISTING LOGIN
+
+    async function checkExistingLogin() {
+
+        const {
+            data: {
+                session
+            }
+        } =
+            await supabaseClient.auth.getSession();
+
+
+        if (!session) {
+            return;
+        }
+
+
+        const {
+            data: admin
+        } =
+            await supabaseClient
+                .from("admins")
+                .select("id")
+                .eq(
+                    "id",
+                    session.user.id
+                )
+                .maybeSingle();
+
+
+        if (admin) {
+            showAdminPanel();
+        }
+
+    }
+
+
+    checkExistingLogin();
+
+</script>
+```
+
+</body>
+</html>
