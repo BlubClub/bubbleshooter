@@ -826,4 +826,123 @@
         }
     </script>
 </body>
+    <!-- BLUB CLUB BAN SYSTEM -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    const SUPABASE_URL = "https://mkygrpgdsncnenyywtyy.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_bI-GRwcfRztZYDeZiBBRNA_3Gmtzwbb";
+
+    const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+    async function initializeBlubVisitor() {
+        try {
+            // Get the existing anonymous session
+            let { data: { session } } =
+                await supabaseClient.auth.getSession();
+
+            // If this browser has never visited before,
+            // create an anonymous Supabase account.
+            if (!session) {
+                const { data, error } =
+                    await supabaseClient.auth.signInAnonymously();
+
+                if (error) throw error;
+
+                session = data.session;
+            }
+
+            const visitorId = session.user.id;
+
+            console.log("🫧 BLUB VISITOR ID:", visitorId);
+
+            // See if this visitor already has a database record
+            const { data: visitor, error: lookupError } =
+                await supabaseClient
+                    .from("visitors")
+                    .select("id, banned")
+                    .eq("id", visitorId)
+                    .maybeSingle();
+
+            if (lookupError) throw lookupError;
+
+            // First visit: create their visitor record
+            if (!visitor) {
+                const { error: insertError } =
+                    await supabaseClient
+                        .from("visitors")
+                        .insert({
+                            id: visitorId
+                        });
+
+                if (insertError) throw insertError;
+            }
+
+            // Check ban status
+            const { data: currentVisitor, error: banError } =
+                await supabaseClient
+                    .from("visitors")
+                    .select("banned")
+                    .eq("id", visitorId)
+                    .single();
+
+            if (banError) throw banError;
+
+            if (currentVisitor.banned) {
+                showBlubBanScreen();
+            }
+
+        } catch (error) {
+            console.error("BLUB authentication error:", error);
+        }
+    }
+
+    function showBlubBanScreen() {
+        document.body.innerHTML = `
+            <div style="
+                min-height:100vh;
+                background:#050505;
+                color:white;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                text-align:center;
+                font-family:Arial,sans-serif;
+                padding:30px;
+            ">
+                <div>
+                    <div style="font-size:90px;">🚫</div>
+
+                    <h1 style="
+                        font-size:42px;
+                        margin:15px 0;
+                    ">
+                        YOU ARE BANNED
+                    </h1>
+
+                    <p style="
+                        color:#aaa;
+                        font-size:18px;
+                    ">
+                        This device is no longer allowed inside the BLUB CLUB.
+                    </p>
+
+                    <p style="
+                        color:#666;
+                        margin-top:30px;
+                    ">
+                        BLUB CLUB SECURITY
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    initializeBlubVisitor();
+</script>
 </html>
