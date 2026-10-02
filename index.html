@@ -922,55 +922,272 @@
             }
         }
 
-        function showBlubBanScreen() {
-            document.body.innerHTML = `
-                <div style="
-                    min-height:100vh;
-                    background:#050505;
-                    color:white;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    text-align:center;
-                    font-family:Arial,sans-serif;
-                    padding:30px;
-                ">
-                    <div>
-                        <div style="
-                            font-size:90px;
-                            margin-bottom:20px;
-                        ">
-                            🚫
-                        </div>
+        function showBlubBanScreen(visitorId) {
 
-                        <h1 style="
-                            font-size:42px;
-                            margin:15px 0;
-                        ">
-                            YOU ARE BANNED
-                        </h1>
+    document.body.innerHTML = `
+        <style>
 
-                        <p style="
-                            color:#aaa;
-                            font-size:18px;
-                            line-height:1.6;
-                        ">
-                            This browser is no longer allowed
-                            inside the BLUB CLUB.
-                        </p>
+            * {
+                box-sizing: border-box;
+            }
 
-                        <p style="
-                            color:#666;
-                            margin-top:30px;
-                            font-size:12px;
-                            letter-spacing:0.2em;
-                        ">
-                            BLUB CLUB SECURITY
-                        </p>
-                    </div>
+            html,
+            body {
+                margin: 0;
+                width: 100%;
+                min-height: 100%;
+                background: #050505;
+                color: white;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            body {
+                overflow: hidden;
+            }
+
+            .blub-ban-page {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+                padding: 25px;
+                background:
+                    radial-gradient(
+                        circle at center,
+                        #211b0d 0%,
+                        #0b0b0b 35%,
+                        #050505 75%
+                    );
+            }
+
+            .blub-ban-page::before {
+                content: "";
+                position: absolute;
+                width: 600px;
+                height: 600px;
+                border: 1px solid rgba(212, 175, 55, 0.12);
+                border-radius: 50%;
+                animation: pulseRing 4s infinite ease-in-out;
+            }
+
+            .blub-ban-page::after {
+                content: "";
+                position: absolute;
+                width: 850px;
+                height: 850px;
+                border: 1px solid rgba(212, 175, 55, 0.06);
+                border-radius: 50%;
+            }
+
+            .ban-card {
+                width: 100%;
+                max-width: 560px;
+                position: relative;
+                z-index: 2;
+                text-align: center;
+                padding: 50px 35px;
+                border: 1px solid rgba(212, 175, 55, 0.35);
+                border-radius: 24px;
+                background: rgba(10, 10, 10, 0.92);
+                box-shadow:
+                    0 0 60px rgba(212, 175, 55, 0.08),
+                    inset 0 0 40px rgba(255, 255, 255, 0.02);
+                backdrop-filter: blur(15px);
+            }
+
+            .security-icon {
+                width: 105px;
+                height: 105px;
+                margin: 0 auto 25px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 48px;
+                border: 2px solid #d4af37;
+                background: #111;
+                box-shadow:
+                    0 0 25px rgba(212, 175, 55, 0.2);
+                animation: iconPulse 2.5s infinite;
+            }
+
+            .security-label {
+                font-size: 11px;
+                letter-spacing: 4px;
+                color: #d4af37;
+                font-weight: bold;
+                margin-bottom: 12px;
+            }
+
+            .ban-title {
+                margin: 0;
+                font-size: clamp(42px, 9vw, 72px);
+                letter-spacing: 3px;
+                font-weight: 900;
+                line-height: 0.95;
+            }
+
+            .ban-subtitle {
+                margin-top: 18px;
+                color: #aaa;
+                font-size: 16px;
+                line-height: 1.6;
+            }
+
+            .divider {
+                width: 70px;
+                height: 2px;
+                background: #d4af37;
+                margin: 28px auto;
+            }
+
+            .status-box {
+                display: inline-flex;
+                align-items: center;
+                gap: 9px;
+                padding: 10px 16px;
+                border-radius: 999px;
+                background: rgba(180, 20, 20, 0.12);
+                border: 1px solid rgba(255, 70, 70, 0.3);
+                color: #ff7070;
+                font-size: 12px;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #ff4444;
+                box-shadow: 0 0 10px #ff4444;
+                animation: blink 1.2s infinite;
+            }
+
+            .visitor-id {
+                margin-top: 25px;
+                color: #555;
+                font-family: monospace;
+                font-size: 10px;
+                word-break: break-all;
+            }
+
+            .blub-footer {
+                margin-top: 35px;
+                color: #444;
+                font-size: 11px;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+
+            @keyframes pulseRing {
+                0%,
+                100% {
+                    transform: scale(0.8);
+                    opacity: 0.2;
+                }
+
+                50% {
+                    transform: scale(1.15);
+                    opacity: 0.6;
+                }
+            }
+
+            @keyframes iconPulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                    box-shadow:
+                        0 0 25px rgba(212, 175, 55, 0.15);
+                }
+
+                50% {
+                    transform: scale(1.04);
+                    box-shadow:
+                        0 0 45px rgba(212, 175, 55, 0.3);
+                }
+            }
+
+            @keyframes blink {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+
+                50% {
+                    opacity: 0.25;
+                }
+            }
+
+            @media (max-width: 600px) {
+
+                .ban-card {
+                    padding: 40px 22px;
+                }
+
+                .security-icon {
+                    width: 85px;
+                    height: 85px;
+                    font-size: 38px;
+                }
+
+                .ban-title {
+                    font-size: 44px;
+                }
+
+            }
+
+        </style>
+
+
+        <div class="blub-ban-page">
+
+            <div class="ban-card">
+
+                <div class="security-icon">
+                    🚫
                 </div>
-            `;
-        }
+
+                <div class="security-label">
+                    BLUB CLUB SECURITY
+                </div>
+
+                <h1 class="ban-title">
+                    ACCESS<br>
+                    DENIED
+                </h1>
+
+                <div class="divider"></div>
+
+                <div class="status-box">
+                    <span class="status-dot"></span>
+                    VISITOR ACCESS REVOKED
+                </div>
+
+                <p class="ban-subtitle">
+                    This browser has been banned from
+                    the BLUB CLUB.
+                    <br><br>
+                    If you believe this was a mistake,
+                    contact a BLUB CLUB administrator.
+                </p>
+
+                <div class="visitor-id">
+                    VISITOR ID: ${visitorId}
+                </div>
+
+                <div class="blub-footer">
+                    🫧 BLUB CLUB • SECURITY SYSTEM
+                </div>
+
+            </div>
+
+        </div>
+    `;
+}
+
 
         // Start BLUB security
         initializeBlubVisitor();
