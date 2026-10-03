@@ -1202,6 +1202,177 @@
         // Start BLUB security
         initializeBlubVisitor();
     </script>
+<!-- 🫧 BLUB MODE EASTER EGG -->
+<script>
+(function () {
+    const secretCode = [
+        "ArrowUp",
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowLeft",
+        "ArrowRight",
+        "KeyB",
+        "KeyA"
+    ];
+
+    let progress = 0;
+
+    document.addEventListener("keydown", function (event) {
+
+        if (event.code === secretCode[progress]) {
+            progress++;
+
+            if (progress === secretCode.length) {
+                activateBlubMode();
+                progress = 0;
+            }
+        } else {
+            progress = 0;
+        }
+    });
+
+    function activateBlubMode() {
+
+        if (document.getElementById("blub-mode-overlay")) return;
+
+        const overlay = document.createElement("div");
+        overlay.id = "blub-mode-overlay";
+
+        overlay.innerHTML = `
+            <div class="blub-mode-text">
+                <div class="blub-emoji">🫧</div>
+                <div class="blub-main">BLUB MODE</div>
+                <div class="blub-sub">ACTIVATED</div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        document.body.classList.add("blub-chaos");
+
+        document.querySelectorAll(".staff-card, .blub-card, img").forEach((element, index) => {
+            element.style.animation = `blubFloat 2s ease-in-out infinite`;
+            element.style.animationDelay = `${index * 0.08}s`;
+        });
+
+        setTimeout(() => {
+            overlay.classList.add("blub-fade");
+
+            document.body.classList.remove("blub-chaos");
+
+            document.querySelectorAll(".staff-card, .blub-card, img").forEach(element => {
+                element.style.animation = "";
+                element.style.animationDelay = "";
+            });
+
+            setTimeout(() => {
+                overlay.remove();
+            }, 700);
+
+        }, 4500);
+    }
+
+    const style = document.createElement("style");
+
+    style.textContent = `
+        #blub-mode-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: blur(8px);
+            opacity: 1;
+            transition: opacity 0.7s ease;
+        }
+
+        #blub-mode-overlay.blub-fade {
+            opacity: 0;
+        }
+
+        .blub-mode-text {
+            text-align: center;
+            color: white;
+            animation: blubPop 0.7s ease-out;
+        }
+
+        .blub-emoji {
+            font-size: 90px;
+            margin-bottom: 15px;
+            animation: blubSpin 1.5s linear infinite;
+        }
+
+        .blub-main {
+            font-size: clamp(45px, 10vw, 90px);
+            font-weight: 900;
+            letter-spacing: 6px;
+        }
+
+        .blub-sub {
+            margin-top: 10px;
+            color: #d4af37;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 7px;
+        }
+
+        .blub-chaos {
+            animation: blubShake 0.18s infinite;
+        }
+
+        @keyframes blubPop {
+            0% {
+                transform: scale(0.2);
+                opacity: 0;
+            }
+
+            70% {
+                transform: scale(1.08);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes blubSpin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes blubFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-25px) rotate(3deg);
+            }
+        }
+
+        @keyframes blubShake {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(2px, -2px); }
+            50% { transform: translate(-2px, 2px); }
+            75% { transform: translate(2px, 2px); }
+            100% { transform: translate(0, 0); }
+        }
+    `;
+
+    document.head.appendChild(style);
+})();
+</script>
 
 </body>
 </html>
