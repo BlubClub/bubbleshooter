@@ -835,376 +835,1085 @@
             updateTextScroll();
         }
     </script>
-    <!-- BLUB CLUB BAN SYSTEM -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    ```html
+<!-- BLUB CLUB BAN + VISITOR NAMING SYSTEM -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script>
-        const SUPABASE_URL =
-            "https://mkygrpgdsncnenyywtyy.supabase.co";
+<script>
+    const SUPABASE_URL =
+        "https://mkygrpgdsncnenyywtyy.supabase.co";
 
-        const SUPABASE_PUBLISHABLE_KEY =
-            "sb_publishable_bI-GRwcfRztZYDeZiBBRNA_3Gmtzwbb";
+    const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_bI-GRwcfRztZYDeZiBBRNA_3Gmtzwbb";
 
-        const supabaseClient =
-            window.supabase.createClient(
-                SUPABASE_URL,
-                SUPABASE_PUBLISHABLE_KEY
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
+
+
+    async function initializeBlubVisitor() {
+
+        try {
+
+            let {
+                data: { session }
+            } = await supabaseClient.auth.getSession();
+
+
+            // Create anonymous visitor if needed
+            if (!session) {
+
+                const {
+                    data,
+                    error
+                } = await supabaseClient.auth.signInAnonymously();
+
+                if (error) {
+                    throw error;
+                }
+
+                session = data.session;
+            }
+
+
+            const visitorId = session.user.id;
+
+            console.log(
+                "🫧 BLUB VISITOR ID:",
+                visitorId
             );
 
-        async function initializeBlubVisitor() {
-            try {
-                // Check for an existing anonymous session
-                let {
-                    data: { session }
-                } = await supabaseClient.auth.getSession();
 
-                // Create a new anonymous identity if needed
-                if (!session) {
-                    const {
-                        data,
-                        error
-                    } = await supabaseClient.auth.signInAnonymously();
+            // Find visitor
+            const {
+                data: visitor,
+                error: lookupError
+            } = await supabaseClient
+                .from("visitors")
+                .select("id, display_name, banned")
+                .eq("id", visitorId)
+                .maybeSingle();
 
-                    if (error) {
-                        throw error;
-                    }
 
-                    session = data.session;
-                }
-
-                const visitorId = session.user.id;
-
-                console.log("🫧 BLUB VISITOR ID:", visitorId);
-
-                // Look for this visitor
-                const {
-                    data: visitor,
-                    error: lookupError
-                } = await supabaseClient
-                    .from("visitors")
-                    .select("id, banned")
-                    .eq("id", visitorId)
-                    .maybeSingle();
-
-                if (lookupError) {
-                    throw lookupError;
-                }
-
-                // Register first-time visitor
-                if (!visitor) {
-                    const {
-                        error: insertError
-                    } = await supabaseClient
-                        .from("visitors")
-                        .insert({
-                            id: visitorId
-                        });
-
-                    if (insertError) {
-                        throw insertError;
-                    }
-                }
-
-                // Check ban status
-                const {
-                    data: currentVisitor,
-                    error: banError
-                } = await supabaseClient
-                    .from("visitors")
-                    .select("banned")
-                    .eq("id", visitorId)
-                    .single();
-
-                if (banError) {
-                    throw banError;
-                }
-
-                // 🚫 BANNED
-                if (currentVisitor.banned) {
-                    showBlubBanScreen(visitorId);
-                }
-
-            } catch (error) {
-                console.error(
-                    "BLUB authentication error:",
-                    error
-                );
+            if (lookupError) {
+                throw lookupError;
             }
+
+
+            // First-time visitor
+            if (!visitor) {
+
+                const {
+                    error: insertError
+                } = await supabaseClient
+                    .from("visitors")
+                    .insert({
+                        id: visitorId
+                    });
+
+
+                if (insertError) {
+                    throw insertError;
+                }
+
+
+                showBlubNameScreen(visitorId);
+
+                return;
+            }
+
+
+            // Check ban
+            if (visitor.banned) {
+
+                showBlubBanScreen(visitorId);
+
+                return;
+            }
+
+
+            // Existing visitor without a name
+            if (!visitor.display_name) {
+
+                showBlubNameScreen(visitorId);
+
+                return;
+            }
+
+
+            console.log(
+                "🫧 Welcome back,",
+                visitor.display_name
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "BLUB authentication error:",
+                error
+            );
+
         }
 
-        function showBlubBanScreen(visitorId) {
+    }
 
-    document.body.innerHTML = `
-        <style>
 
-            * {
-                box-sizing: border-box;
-            }
+    /* ==========================================
+       BLUB NAME SCREEN
+       ========================================== */
 
-            html,
-            body {
-                margin: 0;
-                width: 100%;
-                min-height: 100%;
-                background: #050505;
-                color: white;
-                font-family: Arial, Helvetica, sans-serif;
-            }
+    function showBlubNameScreen(visitorId) {
 
-            body {
-                overflow: hidden;
-            }
+        document.body.innerHTML = `
 
-            .blub-ban-page {
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-                overflow: hidden;
-                padding: 25px;
-                background:
-                    radial-gradient(
-                        circle at center,
-                        #211b0d 0%,
-                        #0b0b0b 35%,
-                        #050505 75%
+            <style>
+
+                * {
+                    box-sizing: border-box;
+                }
+
+                html,
+                body {
+                    margin: 0;
+                    width: 100%;
+                    min-height: 100%;
+                    background: #050505;
+                    color: white;
+                    font-family:
+                        Arial,
+                        Helvetica,
+                        sans-serif;
+                }
+
+                body {
+                    overflow: hidden;
+                }
+
+                .blub-name-page {
+
+                    min-height: 100vh;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    position: relative;
+                    overflow: hidden;
+
+                    padding: 25px;
+
+                    background:
+                        radial-gradient(
+                            circle at center,
+                            #211b0d 0%,
+                            #0b0b0b 35%,
+                            #050505 75%
+                        );
+
+                }
+
+                .blub-name-page::before {
+
+                    content: "";
+
+                    position: absolute;
+
+                    width: 600px;
+                    height: 600px;
+
+                    border:
+                        1px solid
+                        rgba(212, 175, 55, 0.12);
+
+                    border-radius: 50%;
+
+                    animation:
+                        nameRing 4s
+                        infinite
+                        ease-in-out;
+
+                }
+
+                .blub-name-card {
+
+                    width: 100%;
+                    max-width: 520px;
+
+                    position: relative;
+                    z-index: 2;
+
+                    text-align: center;
+
+                    padding: 50px 35px;
+
+                    border:
+                        1px solid
+                        rgba(212, 175, 55, 0.35);
+
+                    border-radius: 24px;
+
+                    background:
+                        rgba(10, 10, 10, 0.94);
+
+                    box-shadow:
+                        0 0 60px
+                        rgba(212, 175, 55, 0.08);
+
+                    backdrop-filter: blur(15px);
+
+                }
+
+                .blub-logo {
+
+                    font-size: 70px;
+
+                    margin-bottom: 18px;
+
+                    animation:
+                        blubBob 2.5s
+                        infinite
+                        ease-in-out;
+
+                }
+
+                .name-label {
+
+                    font-size: 11px;
+
+                    letter-spacing: 4px;
+
+                    color: #d4af37;
+
+                    font-weight: bold;
+
+                    margin-bottom: 12px;
+
+                }
+
+                .name-title {
+
+                    margin: 0;
+
+                    font-size:
+                        clamp(
+                            38px,
+                            8vw,
+                            58px
+                        );
+
+                    font-weight: 900;
+
+                    letter-spacing: 2px;
+
+                }
+
+                .name-subtitle {
+
+                    margin-top: 16px;
+
+                    color: #999;
+
+                    font-size: 15px;
+
+                    line-height: 1.6;
+
+                }
+
+                .blub-name-form {
+
+                    margin-top: 30px;
+
+                }
+
+                .blub-name-input {
+
+                    width: 100%;
+
+                    padding: 16px 18px;
+
+                    border-radius: 12px;
+
+                    border:
+                        1px solid
+                        rgba(212, 175, 55, 0.35);
+
+                    background: #111;
+
+                    color: white;
+
+                    font-size: 16px;
+
+                    outline: none;
+
+                    text-align: center;
+
+                }
+
+                .blub-name-input:focus {
+
+                    border-color: #d4af37;
+
+                    box-shadow:
+                        0 0 20px
+                        rgba(212, 175, 55, 0.12);
+
+                }
+
+                .blub-enter-button {
+
+                    width: 100%;
+
+                    margin-top: 14px;
+
+                    padding: 15px;
+
+                    border: none;
+
+                    border-radius: 12px;
+
+                    background: #d4af37;
+
+                    color: #050505;
+
+                    font-size: 13px;
+
+                    font-weight: 900;
+
+                    letter-spacing: 2px;
+
+                    cursor: pointer;
+
+                    transition:
+                        transform 0.2s ease,
+                        box-shadow 0.2s ease;
+
+                }
+
+                .blub-enter-button:hover {
+
+                    transform:
+                        translateY(-2px);
+
+                    box-shadow:
+                        0 8px 25px
+                        rgba(212, 175, 55, 0.2);
+
+                }
+
+                .name-error {
+
+                    min-height: 20px;
+
+                    margin-top: 12px;
+
+                    color: #ff7070;
+
+                    font-size: 12px;
+
+                }
+
+                .name-footer {
+
+                    margin-top: 25px;
+
+                    color: #444;
+
+                    font-size: 10px;
+
+                    letter-spacing: 2px;
+
+                    text-transform: uppercase;
+
+                }
+
+                @keyframes nameRing {
+
+                    0%,
+                    100% {
+
+                        transform:
+                            scale(0.8);
+
+                        opacity: 0.2;
+
+                    }
+
+                    50% {
+
+                        transform:
+                            scale(1.15);
+
+                        opacity: 0.6;
+
+                    }
+
+                }
+
+                @keyframes blubBob {
+
+                    0%,
+                    100% {
+
+                        transform:
+                            translateY(0);
+
+                    }
+
+                    50% {
+
+                        transform:
+                            translateY(-10px);
+
+                    }
+
+                }
+
+                @media (max-width: 600px) {
+
+                    .blub-name-card {
+
+                        padding:
+                            40px 22px;
+
+                    }
+
+                    .blub-logo {
+
+                        font-size: 55px;
+
+                    }
+
+                }
+
+            </style>
+
+
+            <div class="blub-name-page">
+
+                <div class="blub-name-card">
+
+                    <div class="blub-logo">
+                        🫧
+                    </div>
+
+                    <div class="name-label">
+                        BLUB CLUB
+                    </div>
+
+                    <h1 class="name-title">
+                        WELCOME, BLUB
+                    </h1>
+
+                    <p class="name-subtitle">
+                        Before entering the BLUB CLUB,
+                        choose your BLUB name.
+                    </p>
+
+
+                    <form
+                        class="blub-name-form"
+                        id="blub-name-form"
+                    >
+
+                        <input
+                            id="blub-name-input"
+                            class="blub-name-input"
+                            type="text"
+                            maxlength="32"
+                            autocomplete="off"
+                            placeholder="Enter your BLUB name..."
+                            required
+                        >
+
+                        <button
+                            class="blub-enter-button"
+                            type="submit"
+                        >
+                            ENTER THE BLUB CLUB
+                        </button>
+
+                        <div
+                            id="blub-name-error"
+                            class="name-error"
+                            aria-live="polite"
+                        ></div>
+
+                    </form>
+
+
+                    <div class="name-footer">
+                        🫧 BLUB CLUB • MEMBER REGISTRATION
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+
+        const form =
+            document.getElementById(
+                "blub-name-form"
+            );
+
+        const input =
+            document.getElementById(
+                "blub-name-input"
+            );
+
+        const error =
+            document.getElementById(
+                "blub-name-error"
+            );
+
+
+        input.focus();
+
+
+        form.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+
+                const displayName =
+                    input.value.trim();
+
+
+                if (!displayName) {
+
+                    error.textContent =
+                        "Please enter a BLUB name.";
+
+                    return;
+                }
+
+
+                if (displayName.length > 32) {
+
+                    error.textContent =
+                        "That BLUB name is too long.";
+
+                    return;
+                }
+
+
+                error.textContent =
+                    "Registering your BLUB...";
+
+
+                const {
+                    error: updateError
+                } = await supabaseClient
+                    .from("visitors")
+                    .update({
+                        display_name:
+                            displayName
+                    })
+                    .eq("id", visitorId);
+
+
+                if (updateError) {
+
+                    console.error(
+                        updateError
                     );
-            }
 
-            .blub-ban-page::before {
-                content: "";
-                position: absolute;
-                width: 600px;
-                height: 600px;
-                border: 1px solid rgba(212, 175, 55, 0.12);
-                border-radius: 50%;
-                animation: pulseRing 4s infinite ease-in-out;
-            }
+                    error.textContent =
+                        "BLUB registration failed. Try again.";
 
-            .blub-ban-page::after {
-                content: "";
-                position: absolute;
-                width: 850px;
-                height: 850px;
-                border: 1px solid rgba(212, 175, 55, 0.06);
-                border-radius: 50%;
-            }
-
-            .ban-card {
-                width: 100%;
-                max-width: 560px;
-                position: relative;
-                z-index: 2;
-                text-align: center;
-                padding: 50px 35px;
-                border: 1px solid rgba(212, 175, 55, 0.35);
-                border-radius: 24px;
-                background: rgba(10, 10, 10, 0.92);
-                box-shadow:
-                    0 0 60px rgba(212, 175, 55, 0.08),
-                    inset 0 0 40px rgba(255, 255, 255, 0.02);
-                backdrop-filter: blur(15px);
-            }
-
-            .security-icon {
-                width: 105px;
-                height: 105px;
-                margin: 0 auto 25px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 48px;
-                border: 2px solid #d4af37;
-                background: #111;
-                box-shadow:
-                    0 0 25px rgba(212, 175, 55, 0.2);
-                animation: iconPulse 2.5s infinite;
-            }
-
-            .security-label {
-                font-size: 11px;
-                letter-spacing: 4px;
-                color: #d4af37;
-                font-weight: bold;
-                margin-bottom: 12px;
-            }
-
-            .ban-title {
-                margin: 0;
-                font-size: clamp(42px, 9vw, 72px);
-                letter-spacing: 3px;
-                font-weight: 900;
-                line-height: 0.95;
-            }
-
-            .ban-subtitle {
-                margin-top: 18px;
-                color: #aaa;
-                font-size: 16px;
-                line-height: 1.6;
-            }
-
-            .divider {
-                width: 70px;
-                height: 2px;
-                background: #d4af37;
-                margin: 28px auto;
-            }
-
-            .status-box {
-                display: inline-flex;
-                align-items: center;
-                gap: 9px;
-                padding: 10px 16px;
-                border-radius: 999px;
-                background: rgba(180, 20, 20, 0.12);
-                border: 1px solid rgba(255, 70, 70, 0.3);
-                color: #ff7070;
-                font-size: 12px;
-                font-weight: bold;
-                letter-spacing: 1px;
-            }
-
-            .status-dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background: #ff4444;
-                box-shadow: 0 0 10px #ff4444;
-                animation: blink 1.2s infinite;
-            }
-
-            .visitor-id {
-                margin-top: 25px;
-                color: #555;
-                font-family: monospace;
-                font-size: 10px;
-                word-break: break-all;
-            }
-
-            .blub-footer {
-                margin-top: 35px;
-                color: #444;
-                font-size: 11px;
-                letter-spacing: 2px;
-                text-transform: uppercase;
-            }
-
-            @keyframes pulseRing {
-                0%,
-                100% {
-                    transform: scale(0.8);
-                    opacity: 0.2;
+                    return;
                 }
 
-                50% {
-                    transform: scale(1.15);
-                    opacity: 0.6;
-                }
+
+                console.log(
+                    "🫧 BLUB NAME:",
+                    displayName
+                );
+
+
+                window.location.reload();
+
             }
+        );
 
-            @keyframes iconPulse {
-                0%,
-                100% {
-                    transform: scale(1);
-                    box-shadow:
-                        0 0 25px rgba(212, 175, 55, 0.15);
+    }
+
+
+    /* ==========================================
+       BAN SCREEN
+       ========================================== */
+
+    function showBlubBanScreen(visitorId) {
+
+        document.body.innerHTML = `
+
+            <style>
+
+                * {
+                    box-sizing: border-box;
                 }
 
-                50% {
-                    transform: scale(1.04);
-                    box-shadow:
-                        0 0 45px rgba(212, 175, 55, 0.3);
+                html,
+                body {
+                    margin: 0;
+                    width: 100%;
+                    min-height: 100%;
+                    background: #050505;
+                    color: white;
+                    font-family:
+                        Arial,
+                        Helvetica,
+                        sans-serif;
                 }
-            }
 
-            @keyframes blink {
-                0%,
-                100% {
-                    opacity: 1;
+                body {
+                    overflow: hidden;
                 }
 
-                50% {
-                    opacity: 0.25;
-                }
-            }
+                .blub-ban-page {
 
-            @media (max-width: 600px) {
+                    min-height: 100vh;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    position: relative;
+                    overflow: hidden;
+
+                    padding: 25px;
+
+                    background:
+                        radial-gradient(
+                            circle at center,
+                            #211b0d 0%,
+                            #0b0b0b 35%,
+                            #050505 75%
+                        );
+
+                }
+
+                .blub-ban-page::before {
+
+                    content: "";
+
+                    position: absolute;
+
+                    width: 600px;
+                    height: 600px;
+
+                    border:
+                        1px solid
+                        rgba(212, 175, 55, 0.12);
+
+                    border-radius: 50%;
+
+                    animation:
+                        pulseRing 4s
+                        infinite
+                        ease-in-out;
+
+                }
+
+                .blub-ban-page::after {
+
+                    content: "";
+
+                    position: absolute;
+
+                    width: 850px;
+                    height: 850px;
+
+                    border:
+                        1px solid
+                        rgba(212, 175, 55, 0.06);
+
+                    border-radius: 50%;
+
+                }
 
                 .ban-card {
-                    padding: 40px 22px;
+
+                    width: 100%;
+                    max-width: 560px;
+
+                    position: relative;
+                    z-index: 2;
+
+                    text-align: center;
+
+                    padding: 50px 35px;
+
+                    border:
+                        1px solid
+                        rgba(212, 175, 55, 0.35);
+
+                    border-radius: 24px;
+
+                    background:
+                        rgba(10, 10, 10, 0.92);
+
+                    box-shadow:
+                        0 0 60px
+                        rgba(212, 175, 55, 0.08),
+                        inset 0 0 40px
+                        rgba(255, 255, 255, 0.02);
+
+                    backdrop-filter: blur(15px);
+
                 }
 
                 .security-icon {
-                    width: 85px;
-                    height: 85px;
-                    font-size: 38px;
+
+                    width: 105px;
+                    height: 105px;
+
+                    margin:
+                        0 auto 25px;
+
+                    border-radius: 50%;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    font-size: 48px;
+
+                    border:
+                        2px solid #d4af37;
+
+                    background: #111;
+
+                    box-shadow:
+                        0 0 25px
+                        rgba(212, 175, 55, 0.2);
+
+                    animation:
+                        iconPulse 2.5s
+                        infinite;
+
+                }
+
+                .security-label {
+
+                    font-size: 11px;
+
+                    letter-spacing: 4px;
+
+                    color: #d4af37;
+
+                    font-weight: bold;
+
+                    margin-bottom: 12px;
+
                 }
 
                 .ban-title {
-                    font-size: 44px;
+
+                    margin: 0;
+
+                    font-size:
+                        clamp(
+                            42px,
+                            9vw,
+                            72px
+                        );
+
+                    letter-spacing: 3px;
+
+                    font-weight: 900;
+
+                    line-height: 0.95;
+
                 }
 
-            }
+                .ban-subtitle {
 
-        </style>
+                    margin-top: 18px;
+
+                    color: #aaa;
+
+                    font-size: 16px;
+
+                    line-height: 1.6;
+
+                }
+
+                .divider {
+
+                    width: 70px;
+                    height: 2px;
+
+                    background: #d4af37;
+
+                    margin: 28px auto;
+
+                }
+
+                .status-box {
+
+                    display: inline-flex;
+
+                    align-items: center;
+
+                    gap: 9px;
+
+                    padding:
+                        10px 16px;
+
+                    border-radius: 999px;
+
+                    background:
+                        rgba(
+                            180,
+                            20,
+                            20,
+                            0.12
+                        );
+
+                    border:
+                        1px solid
+                        rgba(
+                            255,
+                            70,
+                            70,
+                            0.3
+                        );
+
+                    color: #ff7070;
+
+                    font-size: 12px;
+
+                    font-weight: bold;
+
+                    letter-spacing: 1px;
+
+                }
+
+                .status-dot {
+
+                    width: 8px;
+                    height: 8px;
+
+                    border-radius: 50%;
+
+                    background: #ff4444;
+
+                    box-shadow:
+                        0 0 10px #ff4444;
+
+                    animation:
+                        blink 1.2s
+                        infinite;
+
+                }
+
+                .visitor-id {
+
+                    margin-top: 25px;
+
+                    color: #555;
+
+                    font-family: monospace;
+
+                    font-size: 10px;
+
+                    word-break: break-all;
+
+                }
+
+                .blub-footer {
+
+                    margin-top: 35px;
+
+                    color: #444;
+
+                    font-size: 11px;
+
+                    letter-spacing: 2px;
+
+                    text-transform: uppercase;
+
+                }
+
+                @keyframes pulseRing {
+
+                    0%,
+                    100% {
+
+                        transform:
+                            scale(0.8);
+
+                        opacity: 0.2;
+
+                    }
+
+                    50% {
+
+                        transform:
+                            scale(1.15);
+
+                        opacity: 0.6;
+
+                    }
+
+                }
+
+                @keyframes iconPulse {
+
+                    0%,
+                    100% {
+
+                        transform:
+                            scale(1);
+
+                        box-shadow:
+                            0 0 25px
+                            rgba(
+                                212,
+                                175,
+                                55,
+                                0.15
+                            );
+
+                    }
+
+                    50% {
+
+                        transform:
+                            scale(1.04);
+
+                        box-shadow:
+                            0 0 45px
+                            rgba(
+                                212,
+                                175,
+                                55,
+                                0.3
+                            );
+
+                    }
+
+                }
+
+                @keyframes blink {
+
+                    0%,
+                    100% {
+                        opacity: 1;
+                    }
+
+                    50% {
+                        opacity: 0.25;
+                    }
+
+                }
+
+                @media (max-width: 600px) {
+
+                    .ban-card {
+
+                        padding:
+                            40px 22px;
+
+                    }
+
+                    .security-icon {
+
+                        width: 85px;
+                        height: 85px;
+
+                        font-size: 38px;
+
+                    }
+
+                    .ban-title {
+
+                        font-size: 44px;
+
+                    }
+
+                }
+
+            </style>
 
 
-        <div class="blub-ban-page">
+            <div class="blub-ban-page">
 
-            <div class="ban-card">
+                <div class="ban-card">
 
-                <div class="security-icon">
-                    🚫
-                </div>
+                    <div class="security-icon">
+                        🚫
+                    </div>
 
-                <div class="security-label">
-                    BLUB CLUB SECURITY
-                </div>
+                    <div class="security-label">
+                        BLUB CLUB SECURITY
+                    </div>
 
-                <h1 class="ban-title">
-                    ACCESS<br>
-                    DENIED
-                </h1>
+                    <h1 class="ban-title">
+                        ACCESS<br>
+                        DENIED
+                    </h1>
 
-                <div class="divider"></div>
+                    <div class="divider"></div>
 
-                <div class="status-box">
-                    <span class="status-dot"></span>
-                    VISITOR ACCESS REVOKED
-                </div>
+                    <div class="status-box">
 
-                <p class="ban-subtitle">
-                    This browser has been banned from
-                    the BLUB CLUB.
-                    <br><br>
-                    If you believe this was a mistake,
-                    contact a BLUB CLUB administrator.
-                </p>
+                        <span class="status-dot"></span>
 
-                <div class="visitor-id">
-                    VISITOR ID: ${visitorId}
-                </div>
+                        VISITOR ACCESS REVOKED
 
-                <div class="blub-footer">
-                    🫧 BLUB CLUB • SECURITY SYSTEM
+                    </div>
+
+                    <p class="ban-subtitle">
+
+                        This browser has been banned from
+                        the BLUB CLUB.
+
+                        <br><br>
+
+                        If you believe this was a mistake,
+                        contact a BLUB CLUB administrator.
+
+                    </p>
+
+                    <div class="visitor-id">
+
+                        VISITOR ID:
+                        ${visitorId}
+
+                    </div>
+
+                    <div class="blub-footer">
+
+                        🫧 BLUB CLUB • SECURITY SYSTEM
+
+                    </div>
+
                 </div>
 
             </div>
 
-        </div>
-    `;
-}
+        `;
+
+    }
 
 
-        // Start BLUB security
-        initializeBlubVisitor();
-    </script>
+    // Start BLUB security
+    initializeBlubVisitor();
+
+</script>
+
+
 <!-- 🫧 BLUB MODE EASTER EGG -->
 <script>
 (function () {
+
     const secretCode = [
         "ArrowUp",
         "ArrowUp",
@@ -1220,159 +1929,377 @@
 
     let progress = 0;
 
-    document.addEventListener("keydown", function (event) {
 
-        if (event.code === secretCode[progress]) {
-            progress++;
+    document.addEventListener(
+        "keydown",
+        function (event) {
 
-            if (progress === secretCode.length) {
-                activateBlubMode();
+            if (
+                event.code ===
+                secretCode[progress]
+            ) {
+
+                progress++;
+
+                if (
+                    progress ===
+                    secretCode.length
+                ) {
+
+                    activateBlubMode();
+
+                    progress = 0;
+                }
+
+            } else {
+
                 progress = 0;
+
             }
-        } else {
-            progress = 0;
+
         }
-    });
+    );
+
 
     function activateBlubMode() {
 
-        if (document.getElementById("blub-mode-overlay")) return;
+        if (
+            document.getElementById(
+                "blub-mode-overlay"
+            )
+        ) {
+            return;
+        }
 
-        const overlay = document.createElement("div");
-        overlay.id = "blub-mode-overlay";
+
+        const overlay =
+            document.createElement("div");
+
+        overlay.id =
+            "blub-mode-overlay";
+
 
         overlay.innerHTML = `
+
             <div class="blub-mode-text">
-                <div class="blub-emoji">🫧</div>
-                <div class="blub-main">BLUB MODE</div>
-                <div class="blub-sub">ACTIVATED</div>
+
+                <div class="blub-emoji">
+                    🫧
+                </div>
+
+                <div class="blub-main">
+                    BLUB MODE
+                </div>
+
+                <div class="blub-sub">
+                    ACTIVATED
+                </div>
+
             </div>
+
         `;
 
-        document.body.appendChild(overlay);
 
-        document.body.classList.add("blub-chaos");
+        document.body.appendChild(
+            overlay
+        );
 
-        document.querySelectorAll(".staff-card, .blub-card, img").forEach((element, index) => {
-            element.style.animation = `blubFloat 2s ease-in-out infinite`;
-            element.style.animationDelay = `${index * 0.08}s`;
-        });
 
-        setTimeout(() => {
-            overlay.classList.add("blub-fade");
+        document.body.classList.add(
+            "blub-chaos"
+        );
 
-            document.body.classList.remove("blub-chaos");
 
-            document.querySelectorAll(".staff-card, .blub-card, img").forEach(element => {
-                element.style.animation = "";
-                element.style.animationDelay = "";
-            });
+        document
+            .querySelectorAll(
+                ".staff-card, .blub-card, img"
+            )
+            .forEach(
+                (element, index) => {
 
-            setTimeout(() => {
-                overlay.remove();
-            }, 700);
+                    element.style.animation =
+                        "blubFloat 2s ease-in-out infinite";
 
-        }, 4500);
+                    element.style.animationDelay =
+                        `${index * 0.08}s`;
+
+                }
+            );
+
+
+        setTimeout(
+            () => {
+
+                overlay.classList.add(
+                    "blub-fade"
+                );
+
+
+                document.body.classList.remove(
+                    "blub-chaos"
+                );
+
+
+                document
+                    .querySelectorAll(
+                        ".staff-card, .blub-card, img"
+                    )
+                    .forEach(
+                        element => {
+
+                            element.style.animation =
+                                "";
+
+                            element.style.animationDelay =
+                                "";
+
+                        }
+                    );
+
+
+                setTimeout(
+                    () => {
+
+                        overlay.remove();
+
+                    },
+                    700
+                );
+
+            },
+            4500
+        );
+
     }
 
-    const style = document.createElement("style");
+
+    const style =
+        document.createElement("style");
+
 
     style.textContent = `
+
         #blub-mode-overlay {
+
             position: fixed;
+
             inset: 0;
+
             z-index: 999999;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
-            background: rgba(0, 0, 0, 0.82);
-            backdrop-filter: blur(8px);
+
+            background:
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.82
+                );
+
+            backdrop-filter:
+                blur(8px);
+
             opacity: 1;
-            transition: opacity 0.7s ease;
+
+            transition:
+                opacity 0.7s ease;
+
         }
+
 
         #blub-mode-overlay.blub-fade {
+
             opacity: 0;
+
         }
+
 
         .blub-mode-text {
+
             text-align: center;
+
             color: white;
-            animation: blubPop 0.7s ease-out;
+
+            animation:
+                blubPop
+                0.7s
+                ease-out;
+
         }
+
 
         .blub-emoji {
+
             font-size: 90px;
+
             margin-bottom: 15px;
-            animation: blubSpin 1.5s linear infinite;
+
+            animation:
+                blubSpin
+                1.5s
+                linear
+                infinite;
+
         }
+
 
         .blub-main {
-            font-size: clamp(45px, 10vw, 90px);
+
+            font-size:
+                clamp(
+                    45px,
+                    10vw,
+                    90px
+                );
+
             font-weight: 900;
+
             letter-spacing: 6px;
+
         }
+
 
         .blub-sub {
+
             margin-top: 10px;
+
             color: #d4af37;
+
             font-size: 18px;
+
             font-weight: bold;
+
             letter-spacing: 7px;
+
         }
+
 
         .blub-chaos {
-            animation: blubShake 0.18s infinite;
+
+            animation:
+                blubShake
+                0.18s
+                infinite;
+
         }
 
+
         @keyframes blubPop {
+
             0% {
-                transform: scale(0.2);
+
+                transform:
+                    scale(0.2);
+
                 opacity: 0;
+
             }
 
             70% {
-                transform: scale(1.08);
+
+                transform:
+                    scale(1.08);
+
             }
 
             100% {
-                transform: scale(1);
+
+                transform:
+                    scale(1);
+
                 opacity: 1;
+
             }
+
         }
 
+
         @keyframes blubSpin {
+
             from {
-                transform: rotate(0deg);
+
+                transform:
+                    rotate(0deg);
+
             }
 
             to {
-                transform: rotate(360deg);
+
+                transform:
+                    rotate(360deg);
+
             }
+
         }
 
+
         @keyframes blubFloat {
-            0%, 100% {
-                transform: translateY(0) rotate(0deg);
+
+            0%,
+            100% {
+
+                transform:
+                    translateY(0)
+                    rotate(0deg);
+
             }
 
             50% {
-                transform: translateY(-25px) rotate(3deg);
+
+                transform:
+                    translateY(-25px)
+                    rotate(3deg);
+
             }
+
         }
+
 
         @keyframes blubShake {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(2px, -2px); }
-            50% { transform: translate(-2px, 2px); }
-            75% { transform: translate(2px, 2px); }
-            100% { transform: translate(0, 0); }
-        }
-    `;
 
-    document.head.appendChild(style);
+            0% {
+                transform:
+                    translate(0, 0);
+            }
+
+            25% {
+                transform:
+                    translate(2px, -2px);
+            }
+
+            50% {
+                transform:
+                    translate(-2px, 2px);
+            }
+
+            75% {
+                transform:
+                    translate(2px, 2px);
+            }
+
+            100% {
+                transform:
+                    translate(0, 0);
+            }
+
+        }
+
+    ;
+
+
+    document.head.appendChild(
+        style
+    );
+
 })();
 </script>
+```
+
 
 </body>
 </html>
